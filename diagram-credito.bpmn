@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  xmlns:flowable="http://flowable.org/bpmn"
+                  id="Definitions_1r0yxaf"
+  xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL https://www.omg.org/spec/BPMN/20100501/BPMN20.xsd
+                      http://www.omg.org/spec/BPMN/20100524/DI https://www.omg.org/spec/BPMN/20100501/BPMNDI.xsd
+                      http://www.omg.org/spec/DD/20100524/DC https://www.omg.org/spec/BPMN/20100501/DC.xsd
+                      http://www.omg.org/spec/DD/20100524/DI https://www.omg.org/spec/BPMN/20100501/DI.xsd
+                      http://flowable.org/bpmn https://raw.githubusercontent.com/flowable/flowable-engine/refs/heads/main/modules/flowable-bpmn-converter/src/main/resources/org/flowable/impl/bpmn/parser/flowable-bpmn-extensions.xsd"
+  targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)"
+  exporterVersion="17.7.1">
+  <bpmn:collaboration id="Collaboration_10ysdp7">
+    <bpmn:participant id="Participant_0wp8d7l" name="Solicitud de Crédito"
+      processRef="solicitud_credito" />
+  </bpmn:collaboration>
+  <bpmn:process id="solicitud_credito" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_09u2rwe">
+      <bpmn:lane id="Lane_0ps77q1" name="Cliente">
+        <bpmn:flowNodeRef>StartEvent_1j1s33p</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0wunesv</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_17if7w0</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0jjmk4d</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_11oxor8</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0p9a1be</bpmn:flowNodeRef>
+        <bpmn:childLaneSet id="LaneSet_16y8f8p" />
+      </bpmn:lane>
+      <bpmn:lane id="Lane_031s5v4" name="Operaciones">
+        <bpmn:flowNodeRef>Event_1rk4m2n</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_09tj3yq</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1k1wol3" name="Riesgo">
+        <bpmn:flowNodeRef>Gateway_0ylrolo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1j3j6tx</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_17lb645" name="Analisis">
+        <bpmn:flowNodeRef>Activity_0x1gnnq</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_1j1s33p">
+      <bpmn:outgoing>Flow_1dflqhg</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0wunesv" name="Ingreso de información">
+      <bpmn:incoming>Flow_1dflqhg</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ues6jj</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_17if7w0">
+      <bpmn:incoming>Flow_0w2fk5a</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Event_0jjmk4d">
+      <bpmn:incoming>Flow_0s9egj1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Event_1rk4m2n">
+      <bpmn:incoming>Flow_0gcdypo</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gateway_0ylrolo" name="Tipo de Riesgo">
+      <bpmn:incoming>Flow_19yrktz</bpmn:incoming>
+      <bpmn:outgoing>Flow_0oua4dl</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0sk0ilx</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0hzoqdi</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:scriptTask id="Activity_0x1gnnq" name="Calculo Monto máximo" scriptFormat="groovy">
+      <bpmn:incoming>Flow_0ues6jj</bpmn:incoming>
+      <bpmn:outgoing>Flow_11b76fq</bpmn:outgoing>
+      <bpmn:script> 
+          import groovy.json.JsonSlurper
+
+          def monto = execution.getVariable("monto")
+          def meses = execution.getVariable("meses")
+
+          def url          = "http://localhost:8080/credito-rest/webapi/monto-maximo/${monto}/${meses}"
+
+          def json         = url.toURL().text
+          def slurper      = new JsonSlurper()
+          def respuesta    = slurper.parseText( json )
+
+          println "Respuesta ${respuesta}"
+
+          execution.setVariable("monto_maximo", respuesta.monto_maximo)
+          println "monto_maximo ${respuesta.monto_maximo}"
+
+
+    </bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_1dflqhg" sourceRef="StartEvent_1j1s33p" targetRef="Activity_0wunesv" />
+    <bpmn:sequenceFlow id="Flow_0ues6jj" sourceRef="Activity_0wunesv" targetRef="Activity_0x1gnnq" />
+    <bpmn:sequenceFlow id="Flow_0oua4dl" name="Bajo" sourceRef="Gateway_0ylrolo"
+      targetRef="Activity_11oxor8">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
+          <![CDATA[
+            ${riesgo == "bajo"}
+          ]]>
+         </bpmn:conditionExpression>
+    </bpmn:sequenceFlow> 
+    <bpmn:sequenceFlow id="Flow_0w2fk5a" sourceRef="Activity_11oxor8" targetRef="Event_17if7w0" />
+    <bpmn:sequenceFlow id="Flow_0hzoqdi" name="Alto" sourceRef="Gateway_0ylrolo"
+      targetRef="Activity_0p9a1be" >
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
+          <![CDATA[
+            ${riesgo == "alto"}
+          ]]>
+        </bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0s9egj1" sourceRef="Activity_0p9a1be" targetRef="Event_0jjmk4d" />
+    <bpmn:sequenceFlow id="Flow_0sk0ilx" name="Medio" sourceRef="Gateway_0ylrolo"
+      targetRef="Activity_09tj3yq" >
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
+          <![CDATA[
+            ${riesgo == "medio"}
+          ]]>
+        </bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0gcdypo" sourceRef="Activity_09tj3yq" targetRef="Event_1rk4m2n" />
+    <bpmn:sequenceFlow id="Flow_11b76fq" sourceRef="Activity_0x1gnnq" targetRef="Activity_1j3j6tx" />
+    <bpmn:sequenceFlow id="Flow_19yrktz" sourceRef="Activity_1j3j6tx" targetRef="Gateway_0ylrolo" />
+
+
+    <!-- Llamada al SOAP -->
+    <bpmn:serviceTask id="Activity_1j3j6tx" name="Consulta de Riesgo" flowable:class="cl.iplacex.jam.delegates.ConsumeSoapRiesgo">
+      <bpmn:incoming>Flow_11b76fq</bpmn:incoming>
+      <bpmn:outgoing>Flow_19yrktz</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:scriptTask id="Activity_11oxor8" name="Propuesta Aprobada" scriptFormat="groovy">
+      <bpmn:incoming>Flow_0oua4dl</bpmn:incoming>
+      <bpmn:outgoing>Flow_0w2fk5a</bpmn:outgoing>
+      <bpmn:script>
+        import groovy.json.JsonSlurper
+        
+        println "Propuesta aprobada"
+
+        def email = execution.getVariable("email")
+        def nombre = execution.getVariable("nombre")
+
+        def subject = "Propuesta aprobada"
+        def message = "${nombre}. Propuesta aprobada por un monto maximo de \$${monto_maximo}."
+        
+
+        def uri = new URI("http", null, "localhost", 8080, "/credito-rest/webapi/notificar/${email}/${subject}/${message}", null, null)
+        def url = uri.toASCIIString()
+
+        
+        def json         = url.toURL().text
+        def slurper      = new JsonSlurper()
+        def respuesta    = slurper.parseText( json )
+
+        println "Respuesta ${respuesta}"
+
+      </bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:scriptTask id="Activity_0p9a1be" name="Solicitud No Aprobada" scriptFormat="groovy">
+      <bpmn:incoming>Flow_0hzoqdi</bpmn:incoming>
+      <bpmn:outgoing>Flow_0s9egj1</bpmn:outgoing>
+      <bpmn:script>
+        import groovy.json.JsonSlurper
+        
+        println "Propuesta Rechazada"
+        
+        def email = execution.getVariable("email")
+        def nombre = execution.getVariable("nombre")
+        def riesgo = execution.getVariable("riesgo")
+
+        def subject = "Propuesta Rechazada"
+        def message = "${nombre}. Propuesta rechazada porque su nivel de riesgo es ${riesgo}."
+        
+        def uri = new URI("http", null, "localhost", 8080, "/credito-rest/webapi/notificar/${email}/${subject}/${message}", null, null)
+        def url = uri.toASCIIString()
+
+        def json         = url.toURL().text
+        def slurper      = new JsonSlurper()
+        def respuesta    = slurper.parseText( json )
+
+        println "Respuesta ${respuesta}"
+
+      </bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:scriptTask id="Activity_09tj3yq" name="Revision Manual" scriptFormat="groovy">
+      <bpmn:incoming>Flow_0sk0ilx</bpmn:incoming>
+      <bpmn:outgoing>Flow_0gcdypo</bpmn:outgoing>
+      <bpmn:script>
+        import groovy.json.JsonSlurper
+        
+        println "Revision Manual"
+        
+        def email = execution.getVariable("email")
+        def nombre = execution.getVariable("nombre")
+        def riesgo = execution.getVariable("riesgo")
+
+        def subject = "Propuesta pasa a Revision Manual"
+        def message = "${nombre}. Propuesta en revision Manual ya que su riesgo es ${riesgo}."
+
+        def uri = new URI("http", null, "localhost", 8080, "/credito-rest/webapi/notificar/${email}/${subject}/${message}", null, null)
+        def url = uri.toASCIIString()
+
+        def json         = url.toURL().text
+        def slurper      = new JsonSlurper()
+        def respuesta    = slurper.parseText( json )
+
+        println "Respuesta ${respuesta}"
+
+      </bpmn:script>
+    </bpmn:scriptTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_10ysdp7">
+      <bpmndi:BPMNShape id="Participant_0wp8d7l_di" bpmnElement="Participant_0wp8d7l"
+        isHorizontal="true">
+        <dc:Bounds x="160" y="120" width="1158" height="640" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0ps77q1_di" bpmnElement="Lane_0ps77q1" isHorizontal="true">
+        <dc:Bounds x="190" y="120" width="1128" height="220" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_031s5v4_di" bpmnElement="Lane_031s5v4" isHorizontal="true">
+        <dc:Bounds x="190" y="610" width="1128" height="150" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1k1wol3_di" bpmnElement="Lane_1k1wol3" isHorizontal="true">
+        <dc:Bounds x="190" y="460" width="1128" height="150" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_17lb645_di" bpmnElement="Lane_17lb645" isHorizontal="true">
+        <dc:Bounds x="190" y="340" width="1128" height="120" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1j1s33p">
+        <dc:Bounds x="232" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0wunesv_di" bpmnElement="Activity_0wunesv">
+        <dc:Bounds x="320" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_17if7w0_di" bpmnElement="Event_17if7w0">
+        <dc:Bounds x="1182" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0jjmk4d_di" bpmnElement="Event_0jjmk4d">
+        <dc:Bounds x="1182" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1rk4m2n_di" bpmnElement="Event_1rk4m2n">
+        <dc:Bounds x="1182" y="652" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0ylrolo_di" bpmnElement="Gateway_0ylrolo" isMarkerVisible="true">
+        <dc:Bounds x="815" y="505" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="803" y="563" width="74" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1lf2mfv_di" bpmnElement="Activity_0x1gnnq">
+        <dc:Bounds x="460" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1aarqmf_di" bpmnElement="Activity_1j3j6tx">
+        <dc:Bounds x="630" y="490" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_128lsw4_di" bpmnElement="Activity_11oxor8">
+        <dc:Bounds x="970" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_15ae7c9_di" bpmnElement="Activity_0p9a1be">
+        <dc:Bounds x="970" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0g8fevs_di" bpmnElement="Activity_09tj3yq">
+        <dc:Bounds x="970" y="630" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1dflqhg_di" bpmnElement="Flow_1dflqhg">
+        <di:waypoint x="268" y="180" />
+        <di:waypoint x="320" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ues6jj_di" bpmnElement="Flow_0ues6jj">
+        <di:waypoint x="420" y="180" />
+        <di:waypoint x="440" y="180" />
+        <di:waypoint x="440" y="400" />
+        <di:waypoint x="460" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0oua4dl_di" bpmnElement="Flow_0oua4dl">
+        <di:waypoint x="840" y="505" />
+        <di:waypoint x="840" y="180" />
+        <di:waypoint x="970" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="889" y="153" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0w2fk5a_di" bpmnElement="Flow_0w2fk5a">
+        <di:waypoint x="1070" y="180" />
+        <di:waypoint x="1182" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hzoqdi_di" bpmnElement="Flow_0hzoqdi">
+        <di:waypoint x="840" y="505" />
+        <di:waypoint x="840" y="280" />
+        <di:waypoint x="970" y="280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="900" y="263" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0s9egj1_di" bpmnElement="Flow_0s9egj1">
+        <di:waypoint x="1070" y="280" />
+        <di:waypoint x="1182" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0sk0ilx_di" bpmnElement="Flow_0sk0ilx">
+        <di:waypoint x="840" y="555" />
+        <di:waypoint x="840" y="670" />
+        <di:waypoint x="970" y="670" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="885" y="643" width="31" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0gcdypo_di" bpmnElement="Flow_0gcdypo">
+        <di:waypoint x="1070" y="670" />
+        <di:waypoint x="1182" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11b76fq_di" bpmnElement="Flow_11b76fq">
+        <di:waypoint x="560" y="400" />
+        <di:waypoint x="595" y="400" />
+        <di:waypoint x="595" y="530" />
+        <di:waypoint x="630" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19yrktz_di" bpmnElement="Flow_19yrktz">
+        <di:waypoint x="730" y="530" />
+        <di:waypoint x="815" y="530" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

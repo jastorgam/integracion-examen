@@ -1,0 +1,7 @@
+<endpoints xmlns="http://java.sun.com/xml/ns/jax-ws/ri/runtime"
+    version="2.0">
+    <endpoint
+        name="credito-soap"
+        implementation="cl.iplacex.jam.CalculoRiesgoImpl"
+        url-pattern="/credito-soap" />
+</endpoints>
